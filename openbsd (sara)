@@ -1,0 +1,49 @@
+#!/bin/sh
+echo This is a vodka-bottle-documentation, sorry, no automation at this time, :-/
+exit 1
+
+##########################################################
+# Prepare doas
+##########################################################
+
+cln -s /local`pwd`/RCS RCS
+mkdir /etc/mkdir -p /local`pwd`/RCS
+ln -s /local`pwd`/RCS RCS
+mkdir /etc/doas
+
+ci -t- -u /etc/doas
+# /etc/doas,v  <--  /etc/doas
+
+co -l /etc/doas
+# /etc/doas,v  -->  /etc/doas
+# no revisions present; generating empty revision 0.0
+writable /etc/doas exists; remove it? [ny](n): "y"
+# no revisions, so nothing can be locked
+# co: /etc/doas: Is a directory
+co -l /etc/doas
+# /etc/doas,v  -->  /etc/doas
+# no revisions present; generating empty revision 0.0
+writable /etc/doas exists; remove it? [ny](n): "n"
+# co: writable /etc/doas exists; checkout aborted
+
+cat <<"EOF" > /etc/doas.conf
+permit nopass keepenv :wheel
+EOF
+
+ci -t- -m"Enabled doas for wheel users. //$doas_USER" -u /etc/doas
+# /etc/doas,v  <--  /etc/doas
+chmod 440 /etc/doas
+
+##########################################################
+# Deploy sysadmins
+##########################################################
+
+useradd -m sara
+usermod -G wheel sara
+chsh -s /usr/local/bin/bash sara
+cat <<"EOF" > /home/sara/.ssh/authorized_keys
+ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDLNeR3WHavUJMGD8fVx1fBUnu7TbtB2lEnjTfpblei0QXdpE8QfHBdaUiRlQTAnd/Zf94qOw1g8mlfvhRTF3/beJc2jq99Qf/fyjTsuNOo/gX/U45IetO5ZsGeGXs0SsEHc7Pi1TzNhIHicE2Ry+109/giR/rM1btglUvC2wzBF1bLLPaRhx+2WkizN41RCIypLOg5ZMIp/lHhS2KNBwHViZfKhHSH1pCsH+U1jSIp1Waa78yjwx9UvX9eQQ/OlUZNWpqotn+hZTK0qGkun2dz6n/Pu3rVPAKMOGmBvn87GdgZ2VFOshfTTxSVIXcZC+tmGXpZsqcY/NBwbjuaP+2CFBBed+q2R+xySt6uKqXrbEfjWzHU8cZ653ptrM+rtXSn5h5rYFTfX71Sb0rZh60VFWSCvP5yZGETaM7lWq3mROpv8YwPmAJ9yhQJcuiYyS8EibNWQ6Kyo3cKBQhaN4O7MltbAxSO3zZDYiee9mw1XaByrFfKG5XHnYWsOhOlxe0AE5wR82yhG5lPAI3IvVi/1USanHk92SCNRva5tjY9t/zEGDBmhhMh67ZNquwFRRwD3IyYZf/Gc+6+gSMX27snyvntSXDN2CYm/H0ZlCFKCgDKMGl4RgFM7xPAGyxirEVoPI7Hxftrz1HDilJ5OQZAlEeWeU8HhNH2Asi2ozZzTQ== sara@PRO
+EOF
+chmod 750 /home/sara/
+sha256 /home/sara/.ssh/authorized_keys
+# SHA256 (/home/sara/.ssh/authorized_keys) = e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
